@@ -16,12 +16,16 @@ class TwistPub(Node):
         self.odom_sub = self.create_subscription(Odometry,
             '/carla/ego_vehicle/odometry', self.odom_callback, 1)
 
+        self.speed_scale_factor = 1/200
+        self.steer_scale_factor = 1/10
+
 
     def odom_callback(self, odom_msg: Odometry):
         twist_msg = TwistStamped()
         twist_msg.header = odom_msg.header
-        twist_msg.twist = odom_msg.twist
-        self.get_logger().info(f'{twist_msg.twist.linear.x}')
+        twist_msg.twist.linear.x = odom_msg.twist.twist.linear.x * self.speed_scale_factor
+        twist_msg.twist.angular.z = odom_msg.twist.twist.angular.z * self.steer_scale_factor
+        self.get_logger().info(f'speed: {twist_msg.twist.linear.x}, steer: {twist_msg.twist.angular.z}')
         self.twist_pub.publish(twist_msg)
 
 
